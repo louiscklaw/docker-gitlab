@@ -1,0 +1,22 @@
+version: '2'
+
+services:
+  gitlab:
+    restart: always
+    image: gitlab/gitlab-ce:latest
+    ports:
+    - "10080:80"
+    - "10022:22"
+    volumes:
+        #- /srv/gitlab/config:/etc/gitlab
+        #- /srv/gitlab/logs:/var/log/gitlab
+        #- /srv/gitlab/data:/var/opt/gitlab
+
+
+        - /mnt/hkhome_ubuntu03/srv/gitlab/config:/test/etc/gitlab
+        - /mnt/hkhome_ubuntu03/srv/gitlab/logs:/test/var/log/gitlab
+        - /mnt/hkhome_ubuntu03/srv/gitlab/data:/test/var/opt/gitlab
+
+    environment:
+    - DEBUG=false
+    - hostname=git.louislabs.com
