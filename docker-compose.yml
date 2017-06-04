@@ -19,4 +19,4 @@ services:
 
     environment:
     - DEBUG=false
-    - hostname=git.louislabs.com
+    - hostname=repo.louislabs.com
