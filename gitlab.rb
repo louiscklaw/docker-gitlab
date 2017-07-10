@@ -10,7 +10,7 @@
 ##! URL on which GitLab will be reachable.
 ##! For more details on configuring external_url see:
 ##! https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
-external_url 'http://repo.louislabs.com'
+external_url 'https://repo.louislabs.com'
 
 ## Legend
 ##! The following notations at the beginning of each line may be used to
