@@ -13,9 +13,9 @@ services:
         #- /srv/gitlab/data:/var/opt/gitlab
 
 
-        - /mnt/hkhome_ubuntu03/srv/gitlab/config:/test/etc/gitlab
-        - /mnt/hkhome_ubuntu03/srv/gitlab/logs:/test/var/log/gitlab
-        - /mnt/hkhome_ubuntu03/srv/gitlab/data:/test/var/opt/gitlab
+        - /mnt/sda1/srv/gitlab/config:/etc/gitlab
+        - /mnt/sda1/srv/gitlab/logs:/var/log/gitlab
+        - /mnt/sda1/srv/gitlab/data:/var/opt/gitlab
 
     environment:
     - DEBUG=false
