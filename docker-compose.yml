@@ -10,12 +10,7 @@ services:
     volumes:
         #- /srv/gitlab/config:/etc/gitlab
         #- /srv/gitlab/logs:/var/log/gitlab
-        #- /srv/gitlab/data:/var/opt/gitlab
-
-
-        - /mnt/sda1/srv/gitlab/config:/etc/gitlab
-        - /mnt/sda1/srv/gitlab/logs:/var/log/gitlab
-        - /mnt/sda1/srv/gitlab/data:/var/opt/gitlab
+        - /srv/data/gitlab:/var/opt/gitlab
 
     environment:
     - DEBUG=false
