@@ -1,82 +1,57 @@
 #!/usr/bin/env python
-# coding:utf-8
+"""
+taskfile for docker-gitlab building
+"""
+
+# from invoke import run,task
 import os
-import sys
-import logging
-import traceback
-from pprint import pprint
+# import sys
 
-from fabric.api import *
-from fabric.colors import *
-
-LOGGING_FORMATTER = '%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s'
-formatter = logging.Formatter(LOGGING_FORMATTER)
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format=LOGGING_FORMATTER,
-    datefmt='%d %m %Y %H:%M:%S',
-    filename='%s' % __file__.replace('.py', '.log'),
-    filemode='a')
-
-# set up logging to console
-console = logging.StreamHandler()
-console.setLevel(logging.ERROR)
-# set a format which is simpler for console use
-
-console.setFormatter(formatter)
-logging.getLogger("").addHandler(console)
+from datetime import datetime
+from fabric.api import run, cd, env, task, local
 
 env.hosts = ['192.168.88.6']
 
+CURR_DIRECTORY = os.path.dirname(__file__)
+
+DOCKER_CONTAINER = r'docker-letsencrypt-manager'
+PATH_DOCKER_FILE_DIRECTORY = r'/srv/docker-files'
+
+PATH_CONTAINER_DIRECTORY = os.path.join(
+    PATH_DOCKER_FILE_DIRECTORY, DOCKER_CONTAINER)
+
+# file for git to ignore
+PATH_NOT_FOR_VERSIONING = []
+PATH_NOT_FOR_VERSIONING.append(
+    PATH_CONTAINER_DIRECTORY + r'/./etc/letsencrypt/')
+
+EPOCH_DATETIME = datetime.now().strftime('%s')
+
+env.use_ssh_config = True
+
+
+PROJ_HOME = 'docker-gitlab'
+LOCAL_DIR, REMOTE_DIR = (
+    '/home/logic/_workspace/docker-files/%s' % PROJ_HOME,
+    '/srv/docker-files/%s' % PROJ_HOME
+)
+
+GITLAB_SERVICE_NAME = 'gitlab'
 
 @task
 def rebuild_container():
-
-    PROJ_HOME = 'docker-gitlab'
-
-    LOCAL_DIR, REMOTE_DIR = (
-        '/home/logic/_workspace/docker-files/%s' % PROJ_HOME,
-        '/srv/docker-files/%s' % PROJ_HOME
-    )
 
     local(
         'rsync -avrPz --exclude .git --exclude .vscode %s/ logic@192.168.88.6:%s' % (LOCAL_DIR, REMOTE_DIR))
 
     with cd(REMOTE_DIR):
-        run('docker-compose build')
-    #     run('docker-compose kill')
-    #     run('docker-compose up --remove-orphans  -d')
-    #     run('docker-compose ps')
-
+        run('docker-compose up --remove-orphans  -d')
+        # run('docker exec -it gitlab update-permissions')
+        run('docker-compose ps')
 
 @task
-def run_test():
-    """to run the behave test"""
-
-    # STEP: run the test
-    print(green("STEP: run the test", True))
-
-    test_feautre_files = [
-        './feature'
-
-    ]
-
-    env.allure_report_directory = './_allure_result'
-    allure_present_command = 'allure serve %s' % env.allure_report_directory
-
-    for test_feature_file in test_feautre_files:
-        behave_command = 'behave --no-capture -f allure_behave.formatter:AllureFormatter -o %s %s' % (
-            env.allure_report_directory, test_feature_file)
-
-        with settings(warn_only=True):
-            local(behave_command)
-
-    local(allure_present_command)
-
-
-@task
-def start_android_emulator():
-    # emulator -avd Nexus_5X_API_24
-
-    pass
+def reload_config():
+    with cd(REMOTE_DIR):
+        run('docker-compose exec %s /bin/bash gitlab-ctl reconfigure' % GITLAB_SERVICE_NAME)
+        # run('docker exec -it gitlab update-permissions')
+        run('docker-compose ps')

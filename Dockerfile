@@ -1,61 +1,50 @@
-FROM sameersbn/ubuntu:14.04.20170228
-MAINTAINER sameer@damagehead.com
+FROM ubuntu:14.04
+MAINTAINER Sytse Sijbrandij
 
-ENV GITLAB_VERSION=9.1.1 \
-    RUBY_VERSION=2.3 \
-    GOLANG_VERSION=1.6.3 \
-    GITLAB_SHELL_VERSION=5.0.2 \
-    GITLAB_WORKHORSE_VERSION=1.4.3 \
-    GITLAB_PAGES_VERSION=0.4.0 \
-    GITLAB_USER="git" \
-    GITLAB_HOME="/home/git" \
-    GITLAB_LOG_DIR="/var/log/gitlab" \
-    GITLAB_CACHE_DIR="/etc/docker-gitlab" \
-    RAILS_ENV=production
+# Install required packages
+RUN apt-get update -q \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+      ca-certificates \
+      openssh-server \
+      wget \
+      apt-transport-https \
+      vim \
+      nano
 
-ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell" \
-    GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse" \
-    GITLAB_PAGES_INSTALL_DIR="${GITLAB_HOME}/gitlab-pages" \
-    GITLAB_DATA_DIR="${GITLAB_HOME}/data" \
-    GITLAB_BUILD_DIR="${GITLAB_CACHE_DIR}/build" \
-    GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime"
+# Download & Install GitLab
+# If you run GitLab Enterprise Edition point it to a location where you have downloaded it.
+RUN echo "deb https://packages.gitlab.com/gitlab/gitlab-ce/ubuntu/ `lsb_release -cs` main" > /etc/apt/sources.list.d/gitlab_gitlab-ce.list
+RUN wget -q -O - https://packages.gitlab.com/gpg.key | apt-key add -
+RUN apt-get update && apt-get install -yq --no-install-recommends gitlab-ce
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E1DD270288B4E6030699E45FA1715D88E1DF1F24 \
- && echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu trusty main" >> /etc/apt/sources.list \
- && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 80F70E11F0F0D5F10CB20E62F5DA5F09C3173AA6 \
- && echo "deb http://ppa.launchpad.net/brightbox/ruby-ng/ubuntu trusty main" >> /etc/apt/sources.list \
- && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 8B3981E7A6852F782CC4951600A6F0A3C300EE8C \
- && echo "deb http://ppa.launchpad.net/nginx/stable/ubuntu trusty main" >> /etc/apt/sources.list \
- && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
- && echo 'deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
- && wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
- && echo 'deb https://deb.nodesource.com/node_7.x trusty main' > /etc/apt/sources.list.d/nodesource.list \
- && wget --quiet -O - https://dl.yarnpkg.com/debian/pubkey.gpg  | apt-key add - \
- && echo 'deb https://dl.yarnpkg.com/debian/ stable main' > /etc/apt/sources.list.d/yarn.list \
- && apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y supervisor logrotate locales curl \
-      nginx openssh-server mysql-client postgresql-client redis-tools \
-      git-core ruby${RUBY_VERSION} python2.7 python-docutils nodejs yarn gettext-base \
-      libmysqlclient18 libpq5 zlib1g libyaml-0-2 libssl1.0.0 \
-      libgdbm3 libreadline6 libncurses5 libffi6 \
-      libxml2 libxslt1.1 libcurl3 libicu52 \
- && update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
- && locale-gen en_US.UTF-8 \
- && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales \
- && gem install --no-document bundler \
- && rm -rf /var/lib/apt/lists/*
+# Manage SSHD through runit
+RUN mkdir -p /opt/gitlab/sv/sshd/supervise \
+    && mkfifo /opt/gitlab/sv/sshd/supervise/ok \
+    && printf "#!/bin/sh\nexec 2>&1\numask 077\nexec /usr/sbin/sshd -D" > /opt/gitlab/sv/sshd/run \
+    && chmod a+x /opt/gitlab/sv/sshd/run \
+    && ln -s /opt/gitlab/sv/sshd /opt/gitlab/service \
+    && mkdir -p /var/run/sshd
 
-COPY assets/build/ ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/install.sh
+# Disabling use DNS in ssh since it tends to slow connecting
+RUN echo "UseDNS no" >> /etc/ssh/sshd_config
 
-COPY assets/runtime/ ${GITLAB_RUNTIME_DIR}/
-COPY entrypoint.sh /sbin/entrypoint.sh
-RUN chmod 755 /sbin/entrypoint.sh
+# Prepare default configuration
+RUN ( \
+  echo "" && \
+  echo "# Docker options" && \
+  echo "# Prevent Postgres from trying to allocate 25% of total memory" && \
+  echo "postgresql['shared_buffers'] = '1MB'" ) >> /etc/gitlab/gitlab.rb && \
+  mkdir -p /assets/ && \
+  cp /etc/gitlab/gitlab.rb /assets/gitlab.rb
 
-EXPOSE 22/tcp 80/tcp 443/tcp
+# Expose web & ssh
+EXPOSE 443 80 22
 
-VOLUME ["${GITLAB_DATA_DIR}", "${GITLAB_LOG_DIR}"]
-WORKDIR ${GITLAB_INSTALL_DIR}
-ENTRYPOINT ["/sbin/entrypoint.sh"]
-CMD ["app:start"]
+# Define data volumes
+VOLUME ["/etc/gitlab", "/var/opt/gitlab", "/var/log/gitlab"]
+
+# Copy assets
+COPY assets/wrapper /usr/local/bin/
+
+# Wrapper to handle signal, trigger runit and reconfigure GitLab
+CMD ["/usr/local/bin/wrapper"]

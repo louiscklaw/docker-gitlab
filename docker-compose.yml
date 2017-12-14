@@ -1,17 +1,19 @@
-version: '2'
+version: '3'
 
 services:
   gitlab:
+    image: 'gitlab/gitlab-ce:latest'
     restart: always
-    image: gitlab/gitlab-ce:latest
     ports:
-    - "10080:80"
-    - "10022:22"
+        - "10080:80"
+        - "10022:22"
     volumes:
         #- /srv/gitlab/config:/etc/gitlab
         #- /srv/gitlab/logs:/var/log/gitlab
         - /srv/data/gitlab:/var/opt/gitlab
+        - $PWD/gitlab_config/gitlab.rb:/etc/gitlab/gitlab.rb
+        - $PWD/gitlab_config/ssl:/etc/gitlab/ssl
 
-    environment:
-    - DEBUG=false
-    - hostname=repo.louislabs.com
+    # environment:
+    #     - DEBUG=false
+    #     - hostname=repo.louislabs.com

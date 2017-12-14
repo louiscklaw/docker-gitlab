@@ -13,14 +13,6 @@
 # external_url 'GENERATED_EXTERNAL_URL'
 external_url 'https://repo.louislabs.com'
 
-# https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/settings/nginx.md#supporting-proxied-ssl
-nginx['listen_port'] = 80
-nginx['listen_https'] = false
-nginx['proxy_set_headers'] = {
-  "X-Forwarded-Proto" => "https",
-  "X-Forwarded-Ssl" => "on"
-}
-
 
 ## Roles for multi-instance GitLab
 ##! The default is to have no roles enabled, which results in GitLab running as an all-in-one instance.
@@ -873,6 +865,14 @@ nginx['proxy_set_headers'] = {
 ##! **Override only if you use a reverse proxy**
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#setting-the-nginx-listen-port
 # nginx['listen_port'] = nil
+
+# https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/settings/nginx.md#supporting-proxied-ssl
+nginx['listen_port'] = 80
+nginx['listen_https'] = false
+nginx['proxy_set_headers'] = {
+  "X-Forwarded-Proto" => "https",
+  "X-Forwarded-Ssl" => "on"
+}
 
 ##! **Override only if your reverse proxy internally communicates over HTTP**
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#supporting-proxied-ssl
