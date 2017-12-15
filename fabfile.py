@@ -39,12 +39,18 @@ LOCAL_DIR, REMOTE_DIR = (
 GITLAB_SERVICE_NAME = 'gitlab'
 
 @task
-def rebuild_container():
-
+def sync_files():
+    """to sync file between develop machine and the docker host"""
     local(
         'rsync -avrPz --exclude .git --exclude .vscode %s/ logic@192.168.88.6:%s' % (LOCAL_DIR, REMOTE_DIR))
 
+@task
+def rebuild_container():
+
+    sync_files()
+
     with cd(REMOTE_DIR):
+        run('docker-compose build')
         run('docker-compose up --remove-orphans  -d')
         # run('docker exec -it gitlab update-permissions')
         run('docker-compose ps')

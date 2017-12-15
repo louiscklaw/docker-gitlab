@@ -1,19 +1,53 @@
 version: '3'
 
 services:
-  gitlab:
-    image: 'gitlab/gitlab-ce:latest'
-    restart: always
-    ports:
-        - "10080:80"
-        - "10022:22"
-    volumes:
-        #- /srv/gitlab/config:/etc/gitlab
-        #- /srv/gitlab/logs:/var/log/gitlab
-        - /srv/data/gitlab:/var/opt/gitlab
-        - $PWD/gitlab_config/gitlab.rb:/etc/gitlab/gitlab.rb
-        - $PWD/gitlab_config/ssl:/etc/gitlab/ssl
+    gitlab:
+        image: 'gitlab/gitlab-ce:latest'
+        restart: always
+        ports:
+            - "10080:80"
+            - "10022:22"
+        volumes:
+            #- /srv/gitlab/config:/etc/gitlab
+            #- /srv/gitlab/logs:/var/log/gitlab
+            - /srv/data/gitlab:/var/opt/gitlab
+            - $PWD/gitlab_config/gitlab.rb:/etc/gitlab/gitlab.rb
+            - $PWD/gitlab_config/ssl:/etc/gitlab/ssl
+        networks:
+            - gitlab-network
 
     # environment:
     #     - DEBUG=false
     #     - hostname=repo.louislabs.com
+    # runner:
+    #     image: sameersbn/gitlab-ci-multi-runner:1.1.4-7
+    #     volumes:
+    #         - $PWD/gitlab-runner:/home/gitlab_ci_multi_runner/data
+    #     environment:
+    #         - CI_SERVER_URL=https://repo.louislabs.com
+    #         - RUNNER_TOKEN=3Sss87y1E8vU9Bajdr_-
+    #         - RUNNER_DESCRIPTION=test_runner
+    #         - RUNNER_EXECUTOR=shell
+    #     restart: always
+    #     networks:
+    #         - gitlab-network
+
+    # docker run -it --network="gitlab-network"  -v $PWD/gitlab-runner:/etc/gitlab-runner  -v $PWD/run/docker.sock:/var/run/docker.sock  gitlab/gitlab-runner:latest
+    # runner:
+    #     image: gitlab/gitlab-runner:latest
+    #     volumes:
+    #         - $PWD/gitlab-runner:/etc/gitlab-runner
+    #         - $PWD/run/docker.sock:/var/run/docker.sock
+    #     networks:
+    #         - gitlab-network
+
+    gitlab_runner:
+        build:
+          context: $PWD/gitlabrunner/
+        networks:
+           - gitlab-network
+
+networks:
+    gitlab-network:
+        external:
+            name: gitlab-network

@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "/home/logic/_workspace/docker-files/testproj"
+		},
+		{
+			"path": "/home/logic/_workspace/test_gitlab_project"
 		}
 	],
 	"settings": {
