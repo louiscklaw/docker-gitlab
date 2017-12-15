@@ -26,12 +26,7 @@ RUN echo "deb https://packages.gitlab.com/runner/gitlab-ci-multi-runner/ubuntu/ 
 ADD entrypoint /
 RUN chmod +x /entrypoint
 
-ENV CI_SERVER_URL=https://repo.louislabs.com/
-ENV RUNNER_NAME=test_runner
-ENV REGISTRATION_TOKEN=ANuVmpTA-NtKQh3epxgf
-ENV REGISTER_NON_INTERACTIVE=true
-
-RUN gitlab-runner register --executor shell
+# RUN gitlab-runner register --executor ${EXECUTOR_TYPE}
 
 VOLUME ["/etc/gitlab-runner", "/home/gitlab-runner"]
 ENTRYPOINT ["/usr/bin/dumb-init", "/entrypoint"]
