@@ -1,9 +1,0 @@
-concurrent = 1
-check_interval = 0
-
-[[runners]]
-  name = "93ab8d71b063"
-  url = "https://repo.louislabs.com/"
-  token = "e0b85bf4f417378ed518744c1d5a89"
-  executor = "shell"
-  [runners.cache]
