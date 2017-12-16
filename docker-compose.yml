@@ -74,7 +74,7 @@ services:
 
         ports:
             - "5000:5000"
-        command: serve -p 5000 /allure-result
+        command: serve -p 5000 /_allure_result
         volumes:
             - allure-result-volume:/_allure_result
 
