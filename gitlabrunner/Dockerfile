@@ -23,6 +23,8 @@ RUN echo "deb https://packages.gitlab.com/runner/gitlab-ci-multi-runner/ubuntu/ 
     chmod -R 700 /etc/gitlab-runner && \
     rm -rf /var/lib/apt/lists/*
 
+RUN echo "gitlab-runner ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
 ADD entrypoint /
 RUN chmod +x /entrypoint
 
