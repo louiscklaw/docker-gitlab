@@ -24,7 +24,31 @@ services:
             - gitlab-network
 
 
-    behave_runner:
+    behave_runner_api22:
+        build:
+            context: ./gitlab-runner/behave-runner
+            args:
+                EXECUTOR_TYPE: shell
+        networks:
+            - gitlab-network
+
+    behave_runner_api23:
+        build:
+            context: ./gitlab-runner/behave-runner
+            args:
+                EXECUTOR_TYPE: shell
+        networks:
+            - gitlab-network
+
+    behave_runner_api24:
+        build:
+            context: ./gitlab-runner/behave-runner
+            args:
+                EXECUTOR_TYPE: shell
+        networks:
+            - gitlab-network
+
+    behave_runner_api25:
         build:
             context: ./gitlab-runner/behave-runner
             args:

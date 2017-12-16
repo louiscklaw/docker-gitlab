@@ -165,7 +165,7 @@ def rebuild_gitlab_shell_runner():
 def rebuild_gitlab_beahve_runner(runner_name, android_api):
     with cd(REMOTE_DIR), prefix('source .env'):
         print(green('start runner building'))
-        rebuild_gitlab_runner(GITLAB_BEHAVE_RUNNER_NAME, ['behave',android_api])
+        rebuild_gitlab_runner(runner_name, ['behave',android_api])
         print(green('building done'))
 
 
@@ -193,12 +193,13 @@ def rebuild_gitlab():
 
 @task
 def rebuild_runner():
+    sync_files()
     with settings(warn_only=True):
         rebuild_gitlab_shell_runner()
-        rebuild_gitlab_beahve_runner('behave_api22','android_api22')
-        rebuild_gitlab_beahve_runner('behave_api23','android_api23')
-        rebuild_gitlab_beahve_runner('behave_api24','android_api24')
-        rebuild_gitlab_beahve_runner('behave_api25','android_api25')
+        rebuild_gitlab_beahve_runner('behave_runner_api22','android_api22')
+        rebuild_gitlab_beahve_runner('behave_runner_api23','android_api23')
+        rebuild_gitlab_beahve_runner('behave_runner_api24','android_api24')
+        rebuild_gitlab_beahve_runner('behave_runner_api25','android_api25')
 
 @task
 def rebuild_all():
