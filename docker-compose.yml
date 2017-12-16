@@ -59,6 +59,7 @@ services:
             - gitlab-network
 
     allure_report:
+        restart: always
         build:
             context: ./allure-report
         volumes:
