@@ -1,19 +1,30 @@
 version: '3'
 
 services:
-  gitlab:
-    image: 'gitlab/gitlab-ce:latest'
-    restart: always
-    ports:
-        - "10080:80"
-        - "10022:22"
-    volumes:
-        #- /srv/gitlab/config:/etc/gitlab
-        #- /srv/gitlab/logs:/var/log/gitlab
-        - /srv/data/gitlab:/var/opt/gitlab
-        - $PWD/gitlab_config/gitlab.rb:/etc/gitlab/gitlab.rb
-        - $PWD/gitlab_config/ssl:/etc/gitlab/ssl
+    gitlab:
+        image: 'gitlab/gitlab-ce:latest'
+        restart: always
+        ports:
+            - "10080:80"
+            - "10022:22"
+        volumes:
+            #- /srv/gitlab/config:/etc/gitlab
+            #- /srv/gitlab/logs:/var/log/gitlab
+            - /srv/data/gitlab:/var/opt/gitlab
+            - $PWD/gitlab/gitlab.rb:/etc/gitlab/gitlab.rb
+        networks:
+            - gitlab-network
 
-    # environment:
-    #     - DEBUG=false
-    #     - hostname=repo.louislabs.com
+    gitlab_shell_runner:
+        build:
+            context: $PWD/appiumrunner/
+            args:
+                EXECUTOR_TYPE: shell
+        networks:
+            - gitlab-network
+
+
+networks:
+    gitlab-network:
+        external:
+            name: gitlab-network

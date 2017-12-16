@@ -7,7 +7,10 @@
 			"path": "/home/logic/_workspace/docker-files/docker-letsencrypt-manager"
 		},
 		{
-			"path": "/home/logic/_workspace/docker-files/testproj"
+			"path": "/home/logic/_workspace/docker-files/docker-android-emulator"
+		},
+		{
+			"path": "/home/logic/_workspace/docker-files/docker-appium-runner"
 		}
 	],
 	"settings": {

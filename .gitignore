@@ -1,0 +1,8 @@
+.env
+
+.gitignore
+.vscode
+*.log
+*.crt
+*.csr
+*.key
