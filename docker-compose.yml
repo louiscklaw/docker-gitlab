@@ -17,7 +17,7 @@ services:
 
     gitlab_shell_runner:
         build:
-            context: ./gitlab-runner/appiumrunner/
+            context: ./gitlab-runner/appiumrunner
             args:
                 EXECUTOR_TYPE: shell
         networks:
