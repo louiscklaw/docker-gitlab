@@ -15,6 +15,7 @@ services:
         networks:
             - gitlab-network
 
+
     gitlab_shell_runner:
         build:
             context: ./gitlab-runner/appiumrunner
@@ -22,6 +23,8 @@ services:
                 EXECUTOR_TYPE: shell
         networks:
             - gitlab-network
+        volumes:
+            - allure-result-volume:/_allure_result
 
 
     behave_runner_api22:
@@ -31,6 +34,8 @@ services:
                 EXECUTOR_TYPE: shell
         networks:
             - gitlab-network
+        volumes:
+            - allure-result-volume:/_allure_result
 
     behave_runner_api23:
         build:
@@ -39,6 +44,8 @@ services:
                 EXECUTOR_TYPE: shell
         networks:
             - gitlab-network
+        volumes:
+            - allure-result-volume:/_allure_result
 
     behave_runner_api24:
         build:
@@ -47,6 +54,8 @@ services:
                 EXECUTOR_TYPE: shell
         networks:
             - gitlab-network
+        volumes:
+            - allure-result-volume:/_allure_result
 
     behave_runner_api25:
         build:
@@ -55,9 +64,24 @@ services:
                 EXECUTOR_TYPE: shell
         networks:
             - gitlab-network
+        volumes:
+            - allure-result-volume:/_allure_result
 
+    allure_report:
+        restart: always
+        build:
+            context: ./allure-report
+
+        ports:
+            - "5000:5000"
+        command: serve -p 5000 /_allure_result
+        volumes:
+            - allure-result-volume:/_allure_result
 
 networks:
     gitlab-network:
         external:
             name: gitlab-network
+
+volumes:
+    allure-result-volume:

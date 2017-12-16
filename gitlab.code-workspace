@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "/home/logic/_workspace/docker-files/docker-appium-runner"
+		},
+		{
+			"path": "/home/logic/_workspace/docker-files/behave"
 		}
 	],
 	"settings": {

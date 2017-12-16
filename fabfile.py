@@ -54,11 +54,62 @@ GITLAB_RUNNER_CONTAINER = os.path.sep.join([
     REMOTE_DIR, GITLAB_RUNNER_NAME
 ])
 
-
 def form_parameter_string(parameters):
     return ' '.join(
         para_name+' '+para_value for para_name, para_value in parameters.items()
         )
+
+class docker_command():
+    def __init__(self, service_name):
+        self.service_name = service_name
+        pass
+
+    def docker_compose(self, options='', commands=''):
+        try:
+            command = 'docker-compose %s %s %s' % (commands,options, self.service_name)
+            return run(command)
+        except Exception as e:
+            print(command)
+            raise e
+        else:
+            pass
+
+class docker_container():
+    def __init__(self, service_name):
+        self.service_name = service_name
+
+    def _up_docker_compose(self):
+        print(green('building %s' % self.service_name))
+        # run('docker-compose up -d --remove-orphans %s' % self.service_name)
+        docker_command(self.service_name).docker_compose('--remove-orphans', 'up -d')
+        print(green('build %s done' % self.service_name, True))
+
+    def _build_docker_compose(self):
+        print(green('building %s' % self.service_name))
+        # run('docker-compose up -d --remove-orphans %s' % self.service_name)
+        docker_command(self.service_name).docker_compose('', 'build')
+        print(green('build %s done' % self.service_name, True))
+
+
+    def build_container(self):
+        with settings(warn_only=True), cd(REMOTE_DIR), prefix('source .env'):
+            self._build_docker_compose()
+            self._up_docker_compose()
+
+    def start_container(self):
+        try:
+            with settings(warn_only=True), cd(REMOTE_DIR), prefix('source .env'):
+                run('docker-compose up -d --remove-orphans %s' % self.service_name)
+        except Exception as e:
+            raise e
+        else:
+            pass
+
+class allure_report_container(docker_container):
+    def __init__(self, service_name):
+        self.service_name = service_name
+        pass
+
 
 @task
 def sync_files():
@@ -89,7 +140,7 @@ def gitrunner_list_unregister_all(container_name):
         with settings(warn_only=True):
             run('docker-compose exec %s gitlab-ci-multi-runner unregister -t %s  -u %s ' % (container_name, token, url))
 
-def rebuild_gitlab(gitlab_container_name):
+def rebuild_gitlab_container(gitlab_container_name):
     print(green('building gitlab', True))
     with cd(REMOTE_DIR), quiet():
         run('docker-compose up -d --remove-orphans %s' % gitlab_container_name)
@@ -155,6 +206,7 @@ def reload_config():
         # run('docker exec -it gitlab update-permissions')
         run('docker-compose ps')
 
+
 def rebuild_gitlab_shell_runner():
     with cd(REMOTE_DIR), prefix('source .env'):
         print(green('start runner building'))
@@ -183,7 +235,7 @@ def rebuild_gitlab():
         run('docker-compose build')
         run('docker-compose down  --remove-orphans')
 
-        rebuild_gitlab(GITLAB_NAME)
+        rebuild_gitlab_container(GITLAB_NAME)
 
         # NOTE: the gitlab may not be wake up in time . so some sleep is required
         wait_for_gitlab_wakeup=60
@@ -202,7 +254,19 @@ def rebuild_runner():
         rebuild_gitlab_beahve_runner('behave_runner_api25','android_api25')
 
 @task
+def rebuild_reporter():
+    try:
+        sync_files()
+        container = allure_report_container('allure_report')
+        container.build_container()
+    except Exception as e:
+        raise e
+    else:
+        pass
+
+@task
 def rebuild_all():
     sync_files()
     rebuild_gitlab()
     rebuild_runner()
+    rebuild_reporter()
