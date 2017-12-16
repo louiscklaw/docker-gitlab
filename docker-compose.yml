@@ -29,6 +29,8 @@ services:
             context: ./gitlab-runner/behave-runner
             args:
                 EXECUTOR_TYPE: shell
+        volumes:
+            - allure-result-volume:/allure-report
         networks:
             - gitlab-network
 
@@ -56,8 +58,19 @@ services:
         networks:
             - gitlab-network
 
+    allure_report:
+        build:
+            context: ./allure-report
+        volumes:
+            - allure-result-volume:/allure-report
+        ports:
+            "5000:5000"
+
 
 networks:
     gitlab-network:
         external:
             name: gitlab-network
+
+volumes:
+    allure-result-volume:
