@@ -113,12 +113,21 @@ def rebuild_container():
         rebuild_gitlab(GITLAB_NAME)
         rebuild_gitlab_runner(GITLAB_SHELL_RUNNER_NAME)
 
+        gitlab_check(GITLAB_SERVICE_NAME)
         run('docker-compose ps')
 
 
+def gitlab_check(container_name):
+    with cd(REMOTE_DIR):
+        run('docker-compose exec %s /bin/bash gitlab-rake gitlab:check' % container_name)
+
 @task
 def reload_config():
+    sync_files()
+
     with cd(REMOTE_DIR):
+        gitlab_check(GITLAB_SERVICE_NAME)
         run('docker-compose exec %s /bin/bash gitlab-ctl reconfigure' % GITLAB_SERVICE_NAME)
+        gitlab_check(GITLAB_SERVICE_NAME)
         # run('docker exec -it gitlab update-permissions')
         run('docker-compose ps')
