@@ -11,9 +11,6 @@
 		},
 		{
 			"path": "/home/logic/_workspace/docker-files/docker-appium-runner"
-		},
-		{
-			"path": "omnibus-gitlab/docker/assets"
 		}
 	],
 	"settings": {
