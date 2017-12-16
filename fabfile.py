@@ -43,9 +43,6 @@ LOCAL_DIR, REMOTE_DIR = (
 
 GITLAB_SERVICE_NAME = 'gitlab'
 
-
-
-
 GITLAB_NAME = 'gitlab'
 GITLAB_IMAGE_NAME = 'gitlab/gitlab-ce'
 
@@ -58,6 +55,10 @@ GITLAB_RUNNER_CONTAINER = os.path.sep.join([
 ])
 
 
+def form_parameter_string(parameters):
+    return ' '.join(
+        para_name+' '+para_value for para_name, para_value in parameters.items()
+        )
 
 @task
 def sync_files():
@@ -108,10 +109,19 @@ def register_gitlab_runner(container_name, tags_list):
     # NOTE: normalize tag
     tags_list = normalize_to_list(tags_list)
 
+    parameters = {
+        '--non-interactive':'',
+        '--executor': 'shell',
+        '--name': container_name,
+        '--tag-list': ','.join(tags_list),
+        '--url':'https://repo.louislabs.com',
+        '--registration-token': '$REG_TOKEN'
+    }
+
     with settings(warn_only=True):
-        run('docker-compose exec {container_name} gitlab-ci-multi-runner register --non-interactive  --executor shell --name {container_name} --tag-list {tags} --url https://repo.louislabs.com/ --registration-token $REG_TOKEN'.format(
+        run('docker-compose exec {container_name} gitlab-ci-multi-runner register {para}'.format(
             container_name = container_name,
-            tags =','.join(tags_list)
+            para = form_parameter_string(parameters)
             )
         )
 
@@ -152,15 +162,15 @@ def rebuild_gitlab_shell_runner():
         print(green('building done'))
 
 
-def rebuild_gitlab_beahve_runner():
+def rebuild_gitlab_beahve_runner(runner_name, android_api):
     with cd(REMOTE_DIR), prefix('source .env'):
         print(green('start runner building'))
-        rebuild_gitlab_runner(GITLAB_BEHAVE_RUNNER_NAME, ['behave'])
+        rebuild_gitlab_runner(GITLAB_BEHAVE_RUNNER_NAME, ['behave',android_api])
         print(green('building done'))
 
 
 @task
-def rebuild_container():
+def rebuild_gitlab():
     # print(green('rebuild gitlabrunner base image'))
     # run('docker build -t gitlabrunner:latest %s' % GITLAB_RUNNER_CONTAINER )
     print(green('building gitlabrunner image'))
@@ -185,10 +195,13 @@ def rebuild_container():
 def rebuild_runner():
     with settings(warn_only=True):
         rebuild_gitlab_shell_runner()
-        rebuild_gitlab_beahve_runner()
+        rebuild_gitlab_beahve_runner('behave_api22','android_api22')
+        rebuild_gitlab_beahve_runner('behave_api23','android_api23')
+        rebuild_gitlab_beahve_runner('behave_api24','android_api24')
+        rebuild_gitlab_beahve_runner('behave_api25','android_api25')
 
 @task
 def rebuild_all():
     sync_files()
-    rebuild_container()
+    rebuild_gitlab()
     rebuild_runner()
