@@ -51,6 +51,7 @@ GITLAB_IMAGE_NAME = 'gitlab/gitlab-ce'
 
 GITLAB_RUNNER_NAME = 'gitlabrunner'
 GITLAB_SHELL_RUNNER_NAME = 'gitlab_shell_runner'
+GITLAB_BEHAVE_RUNNER_NAME ='behave_runner'
 
 GITLAB_RUNNER_CONTAINER = os.path.sep.join([
     REMOTE_DIR, GITLAB_RUNNER_NAME
@@ -94,17 +95,33 @@ def rebuild_gitlab(gitlab_container_name):
         # run('docker-compose exec %s gitlab-rake gitlab:env:info' % gitlab_container_name)
         # run('docker-compose exec %s gitlab-rake gitlab:check SANITIZE=true' % gitlab_container_name)
 
-def register_gitlab_runner(container_name):
-    with settings(warn_only=True):
-        run('docker-compose exec %s gitlab-ci-multi-runner register --non-interactive  --executor shell --name shell_runner --url https://repo.louislabs.com/ --registration-token $REG_TOKEN' % container_name)
+def normalize_to_list(variant):
+    output = variant
+    if type(output) == type([]):
+        pass
+    else:
+        output = [output]
+    return output
 
-def rebuild_gitlab_runner(container_name):
+
+def register_gitlab_runner(container_name, tags_list):
+    # NOTE: normalize tag
+    tags_list = normalize_to_list(tags_list)
+
+    with settings(warn_only=True):
+        run('docker-compose exec {container_name} gitlab-ci-multi-runner register --non-interactive  --executor shell --name {container_name} --tag-list {tags} --url https://repo.louislabs.com/ --registration-token $REG_TOKEN'.format(
+            container_name = container_name,
+            tags =','.join(tags_list)
+            )
+        )
+
+def rebuild_gitlab_runner(container_name, tags_list):
     print(green('building gitlab runner', True))
     with cd(REMOTE_DIR), prefix('source .env'), quiet():
         run('docker-compose up -d --remove-orphans %s' % container_name)
 
     unregister_gitlab_runner(container_name)
-    register_gitlab_runner(container_name)
+    register_gitlab_runner(container_name, tags_list)
 
 def unregister_gitlab_runner(container_name):
     with settings(warn_only=True):
@@ -128,11 +145,22 @@ def reload_config():
         # run('docker exec -it gitlab update-permissions')
         run('docker-compose ps')
 
+def rebuild_gitlab_shell_runner():
+    with cd(REMOTE_DIR), prefix('source .env'):
+        print(green('start runner building'))
+        rebuild_gitlab_runner(GITLAB_SHELL_RUNNER_NAME, ['basic'])
+        print(green('building done'))
+
+
+def rebuild_gitlab_beahve_runner():
+    with cd(REMOTE_DIR), prefix('source .env'):
+        print(green('start runner building'))
+        rebuild_gitlab_runner(GITLAB_BEHAVE_RUNNER_NAME, ['behave'])
+        print(green('building done'))
+
+
 @task
 def rebuild_container():
-
-    sync_files()
-
     # print(green('rebuild gitlabrunner base image'))
     # run('docker build -t gitlabrunner:latest %s' % GITLAB_RUNNER_CONTAINER )
     print(green('building gitlabrunner image'))
@@ -155,9 +183,12 @@ def rebuild_container():
 
 @task
 def rebuild_runner():
-    with cd(REMOTE_DIR), prefix('source .env'):
-        print(green('start runner building'))
-        rebuild_gitlab_runner(GITLAB_SHELL_RUNNER_NAME)
+    with settings(warn_only=True):
+        rebuild_gitlab_shell_runner()
+        rebuild_gitlab_beahve_runner()
 
-        print(green('building done'))
-        run('docker-compose ps')
+@task
+def rebuild_all():
+    sync_files()
+    rebuild_container()
+    rebuild_runner()
