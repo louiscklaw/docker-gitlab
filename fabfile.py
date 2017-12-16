@@ -54,25 +54,62 @@ GITLAB_RUNNER_CONTAINER = os.path.sep.join([
     REMOTE_DIR, GITLAB_RUNNER_NAME
 ])
 
-def build_docker_compose(service_name=""):
-    print(green('building %s' % service_name))
-    run('docker-compose up -d --remove-orphans %s' % service_name)
-    print(green('build %s done' % service_name, True))
-
-class allure_report_container():
-    def __init__(self, service_name):
-        self.service_name = service_name
-        pass
-    def build(self):
-        service_name = self.service_name
-        with settings(warn_only=True), cd(REMOTE_DIR), prefix('source .env'):
-            build_docker_compose(service_name)
-
-
 def form_parameter_string(parameters):
     return ' '.join(
         para_name+' '+para_value for para_name, para_value in parameters.items()
         )
+
+class docker_command():
+    def __init__(self, service_name):
+        self.service_name = service_name
+        pass
+
+    def docker_compose(self, options='', commands=''):
+        try:
+            command = 'docker-compose %s %s %s' % (commands,options, self.service_name)
+            return run(command)
+        except Exception as e:
+            print(command)
+            raise e
+        else:
+            pass
+
+class docker_container():
+    def __init__(self, service_name):
+        self.service_name = service_name
+
+    def _up_docker_compose(self):
+        print(green('building %s' % self.service_name))
+        # run('docker-compose up -d --remove-orphans %s' % self.service_name)
+        docker_command(self.service_name).docker_compose('--remove-orphans', 'up -d')
+        print(green('build %s done' % self.service_name, True))
+
+    def _build_docker_compose(self):
+        print(green('building %s' % self.service_name))
+        # run('docker-compose up -d --remove-orphans %s' % self.service_name)
+        docker_command(self.service_name).docker_compose('', 'build')
+        print(green('build %s done' % self.service_name, True))
+
+
+    def build_container(self):
+        with settings(warn_only=True), cd(REMOTE_DIR), prefix('source .env'):
+            self._build_docker_compose()
+            self._up_docker_compose()
+
+    def start_container(self):
+        try:
+            with settings(warn_only=True), cd(REMOTE_DIR), prefix('source .env'):
+                run('docker-compose up -d --remove-orphans %s' % self.service_name)
+        except Exception as e:
+            raise e
+        else:
+            pass
+
+class allure_report_container(docker_container):
+    def __init__(self, service_name):
+        self.service_name = service_name
+        pass
+
 
 @task
 def sync_files():
@@ -221,7 +258,7 @@ def rebuild_reporter():
     try:
         sync_files()
         container = allure_report_container('allure_report')
-        container.build()
+        container.build_container()
     except Exception as e:
         raise e
     else:

@@ -1,19 +1,8 @@
-FROM anapsix/alpine-java
-MAINTAINER Justin Commu
+FROM node:8.1.4-alpine
 
-RUN mkdir /allure
-RUN mkdir /allure-results
-RUN mkdir /allure-report
-RUN mkdir /allure-config
+RUN apk add --no-cache make gcc g++ python openjdk8
 
-RUN apk update && \
-	apk add ca-certificates && \
-	update-ca-certificates && \
-	apk add openssl && \
-	apk add unzip
+RUN yarn global add allure-commandline && \
+  apk del make gcc g++ python
 
-RUN wget https://github.com/allure-framework/allure-core/releases/download/allure-core-1.4.24.RC3/allure-commandline.zip
-RUN unzip allure-commandline.zip -d /allure
-RUN rm allure-commandline.zip
-ENV PATH="/allure/bin:${PATH}"
-ENV ALLURE_CONFIG="/allure-config/allure.properties"
+ENTRYPOINT ["allure"]
