@@ -24,7 +24,7 @@ services:
         networks:
             - gitlab-network
         volumes:
-            - allure-result-volume:/_allure-report
+            - allure-result-volume:/_allure_result
 
 
     behave_runner_api22:
@@ -35,7 +35,7 @@ services:
         networks:
             - gitlab-network
         volumes:
-            - allure-result-volume:/_allure-report
+            - allure-result-volume:/_allure_result
 
     behave_runner_api23:
         build:
@@ -45,7 +45,7 @@ services:
         networks:
             - gitlab-network
         volumes:
-            - allure-result-volume:/_allure-report
+            - allure-result-volume:/_allure_result
 
     behave_runner_api24:
         build:
@@ -63,7 +63,7 @@ services:
         networks:
             - gitlab-network
         volumes:
-            - allure-result-volume:/_allure-report
+            - allure-result-volume:/_allure_result
 
     allure_report:
         restart: always
@@ -74,7 +74,7 @@ services:
             - "5000:5000"
         command: serve -p 5000 /allure-result
         volumes:
-            - allure-result-volume:/_allure-report
+            - allure-result-volume:/_allure_result
 
 networks:
     gitlab-network:
