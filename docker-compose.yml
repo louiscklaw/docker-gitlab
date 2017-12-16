@@ -64,7 +64,7 @@ services:
         volumes:
             - allure-result-volume:/allure-report
         ports:
-            "5000:5000"
+            - "5000:5000"
 
 
 networks:
