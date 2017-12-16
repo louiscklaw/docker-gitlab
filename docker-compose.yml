@@ -54,6 +54,8 @@ services:
                 EXECUTOR_TYPE: shell
         networks:
             - gitlab-network
+        volumes:
+            - allure-result-volume:/_allure_result
 
     behave_runner_api25:
         build:
