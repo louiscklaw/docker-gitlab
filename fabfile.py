@@ -4,7 +4,7 @@ taskfile for docker-gitlab building
 """
 
 # from invoke import run,task
-import os
+import os,sys
 # import sys
 
 from datetime import datetime
@@ -15,6 +15,8 @@ import re
 import time
 
 env.hosts = ['192.168.88.6']
+REG_TOKEN = os.getenv('REG_TOKEN','NOT_DEFINED')
+
 
 CURR_DIRECTORY = os.path.dirname(__file__)
 
@@ -169,7 +171,8 @@ def normalize_to_list(variant):
 
 
 def register_gitlab_runner(container_name, tags_list):
-    # NOTE: normalize tag
+
+
     tags_list = normalize_to_list(tags_list)
 
     parameters = {
@@ -178,7 +181,7 @@ def register_gitlab_runner(container_name, tags_list):
         '--name': container_name,
         '--tag-list': ','.join(tags_list),
         '--url':'https://repo.louislabs.com',
-        '--registration-token': '$REG_TOKEN'
+        '--registration-token': REG_TOKEN
     }
 
     with settings(warn_only=True):
@@ -237,10 +240,16 @@ def rebuild_gitlab_runner():
 def rebuild_beahve_runner(runner_name, android_api):
     # with cd(BEHAVE_RUNNER_CONTAINER), prefix('source .env'):
     with cd(BEHAVE_RUNNER_CONTAINER):
+        print(green('try unregister runner'))
+        unregister_gitlab_runner(runner_name)
+
         print(green('start runner building'))
         # rebuild_gitlab_runner(runner_name, ['behave',android_api])
         run('docker build -t behave-runner .')
         print(green('building done'))
+
+        print(green('register runner'))
+        register_gitlab_runner(runner_name, runner_name)
 
 @task
 def rebuild_gitlab():
@@ -271,8 +280,8 @@ def rebuild_runner():
         rebuild_gitlab_runner()
         # rebuild_gitlab_shell_runner()
         rebuild_beahve_runner('behave_runner_api22','android_api22')
-        rebuild_beahve_runner('behave_runner_api23','android_api23')
-        rebuild_beahve_runner('behave_runner_api24','android_api24')
+        # rebuild_beahve_runner('behave_runner_api23','android_api23', REG_TOKEN)
+        # rebuild_beahve_runner('behave_runner_api24','android_api24', REG_TOKEN)
         rebuild_beahve_runner('behave_runner_api25','android_api25')
 
 @task
