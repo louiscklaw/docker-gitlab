@@ -64,11 +64,13 @@ ENV JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64/jre" \
 #=====================
 # Install Android SDK
 #=====================
-ARG SDK_VERSION=sdk-tools-linux-3859397
-ARG ANDROID_BUILD_TOOLS_VERSION=26.0.0
-ENV SDK_VERSION=$SDK_VERSION \
-    ANDROID_BUILD_TOOLS_VERSION=$ANDROID_BUILD_TOOLS_VERSION \
-    ANDROID_HOME=/root
+ARG ANDROID_HOME
+ARG SDK_VERSION
+ARG ANDROID_BUILD_TOOLS_VERSION
+
+ENV SDK_VERSION=${SDK_VERSION} \
+    ANDROID_BUILD_TOOLS_VERSION=${ANDROID_BUILD_TOOLS_VERSION} \
+    ANDROID_HOME=${ANDROID_HOME}
 
 RUN wget -O tools.zip https://dl.google.com/android/repository/${SDK_VERSION}.zip
 RUN unzip tools.zip && rm tools.zip
