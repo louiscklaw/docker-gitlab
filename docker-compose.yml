@@ -30,46 +30,30 @@ services:
     behave_runner_api22:
         build:
             context: ./runner-container/behave-runner
-            args:
-                ANDROID_HOME: /root
-                SDK_VERSION: sdk-tools-linux-3859397
-                ANDROID_BUILD_TOOLS_VERSION: 26.0.0
         networks:
             - gitlab-network
         volumes:
             - allure-result-volume:/_allure_result
 
-    behave_runner_api23:
-        build:
-            context: ./runner-container/behave-runner
-            args:
-                ANDROID_HOME: /root
-                SDK_VERSION: sdk-tools-linux-3859397
-                ANDROID_BUILD_TOOLS_VERSION: 26.0.0
-        networks:
-            - gitlab-network
-        volumes:
-            - allure-result-volume:/_allure_result
+    # behave_runner_api23:
+    #     build:
+    #         context: ./runner-container/behave-runner
+    #     networks:
+    #         - gitlab-network
+    #     volumes:
+    #         - allure-result-volume:/_allure_result
 
-    behave_runner_api24:
-        build:
-            context: ./runner-container/behave-runner
-            args:
-                ANDROID_HOME: /root
-                SDK_VERSION: sdk-tools-linux-3859397
-                ANDROID_BUILD_TOOLS_VERSION: 26.0.0
-        networks:
-            - gitlab-network
-        volumes:
-            - allure-result-volume:/_allure_result
+    # behave_runner_api24:
+    #     build:
+    #         context: ./runner-container/behave-runner
+    #     networks:
+    #         - gitlab-network
+    #     volumes:
+    #         - allure-result-volume:/_allure_result
 
     behave_runner_api25:
         build:
             context: ./runner-container/behave-runner
-            args:
-                ANDROID_HOME: /root
-                SDK_VERSION: sdk-tools-linux-3859397
-                ANDROID_BUILD_TOOLS_VERSION: 26.0.0
         networks:
             - gitlab-network
         volumes:

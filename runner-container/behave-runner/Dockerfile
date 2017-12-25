@@ -1,8 +1,5 @@
 FROM sdk-container:latest
 
-RUN sed -i 's/http:\/\/archive\.ubuntu\.com/http:\/\/ftp\.cuhk\.edu\.hk\/pub\/Linux/g' /etc/apt/sources.list
-RUN sed -i 's/http:\/\/security\.ubuntu\.com/http:\/\/ftp\.cuhk\.edu\.hk\/pub\/Linux/g' /etc/apt/sources.list
-
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.0.2/dumb-init_1.0.2_amd64 /usr/bin/dumb-init
 RUN chmod +x /usr/bin/dumb-init
 
@@ -28,7 +25,9 @@ RUN echo "gitlab-runner ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 ADD entrypoint /
 RUN chmod +x /entrypoint
 
-# RUN gitlab-runner register --executor ${EXECUTOR_TYPE}
+
+# for adb/fastboot path to the gitlab-runner
+RUN echo "export PATH=$PATH:/root/tools:/root/tools/bin:/root/platform-tools:/root/build-tools" >> /home/gitlab-runner/.bashrc
 
 VOLUME ["/etc/gitlab-runner", "/home/gitlab-runner"]
 ENTRYPOINT ["/usr/bin/dumb-init", "/entrypoint"]
