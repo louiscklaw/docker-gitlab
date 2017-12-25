@@ -27,7 +27,7 @@ RUN chmod +x /entrypoint
 
 
 # for adb/fastboot path to the gitlab-runner
-RUN echo "export PATH=$PATH:/root/tools:/root/tools/bin:/root/platform-tools:/root/build-tools" >> /home/gitlab-runner/.bashrc
+# RUN echo "export PATH=$PATH:/root/tools:/root/tools/bin:/root/platform-tools:/root/build-tools" >> /home/gitlab-runner/.bashrc
 
 VOLUME ["/etc/gitlab-runner", "/home/gitlab-runner"]
 ENTRYPOINT ["/usr/bin/dumb-init", "/entrypoint"]
