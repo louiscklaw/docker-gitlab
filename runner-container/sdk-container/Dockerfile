@@ -83,3 +83,9 @@ RUN touch ~/.android/repositories.cfg
 RUN echo y | sdkmanager "platform-tools"
 RUN echo y | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION"
 ENV PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools
+
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -y python python-pip python3 python3-pip
+
+RUN pip3 install pipenv

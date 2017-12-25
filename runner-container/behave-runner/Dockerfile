@@ -1,42 +1,35 @@
-# For gitlab -> runner
+FROM sdk-container:latest
 
-FROM gitlabrunner:latest
+RUN sed -i 's/http:\/\/archive\.ubuntu\.com/http:\/\/ftp\.cuhk\.edu\.hk\/pub\/Linux/g' /etc/apt/sources.list
+RUN sed -i 's/http:\/\/security\.ubuntu\.com/http:\/\/ftp\.cuhk\.edu\.hk\/pub\/Linux/g' /etc/apt/sources.list
+
+ADD https://github.com/Yelp/dumb-init/releases/download/v1.0.2/dumb-init_1.0.2_amd64 /usr/bin/dumb-init
+RUN chmod +x /usr/bin/dumb-init
 
 RUN apt-get update -y && \
     apt-get upgrade -y && \
-    apt-get install -y python python-pip python3 python3-pip
-
-RUN pip3 install pipenv
-
-# install java
-RUN apt-get -qqy --no-install-recommends install software-properties-common
-RUN add-apt-repository ppa:openjdk-r/ppa -y
-RUN apt-get -qqy update
-RUN apt-get -qqy --no-install-recommends install openjdk-8-jdk
-ENV JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64/jre" \
-    PATH=$PATH:$JAVA_HOME/bin
-
-# install adb
-ARG SDK_VERSION=sdk-tools-linux-3859397
-ARG ANDROID_BUILD_TOOLS_VERSION=26.0.0
-ENV SDK_VERSION=$SDK_VERSION \
-    ANDROID_BUILD_TOOLS_VERSION=$ANDROID_BUILD_TOOLS_VERSION \
-    ANDROID_HOME=/root
-
-RUN apt-get -qqy --no-install-recommends install unzip
-RUN wget -O tools.zip https://dl.google.com/android/repository/${SDK_VERSION}.zip && \
-    unzip tools.zip && rm tools.zip && \
-    chmod a+x -R $ANDROID_HOME && \
-    chown -R root:root $ANDROID_HOME
-ENV PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin
-
-# https://askubuntu.com/questions/885658/android-sdk-repositories-cfg-could-not-be-loaded
-RUN mkdir -p ~/.android
-RUN touch ~/.android/repositories.cfg
-
-RUN echo y | sdkmanager "platform-tools"
-RUN echo y | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION"
-ENV PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools
-
-RUN apt-get clean && \
+    apt-get install -y ca-certificates wget apt-transport-https vim nano && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+RUN echo "deb https://packages.gitlab.com/runner/gitlab-ci-multi-runner/ubuntu/ `lsb_release -cs` main" > /etc/apt/sources.list.d/runner_gitlab-ci-multi-runner.list && \
+    wget -q -O - https://packages.gitlab.com/gpg.key | apt-key add - && \
+    apt-get update -y && \
+    apt-get install -y gitlab-ci-multi-runner && \
+    wget -q https://github.com/docker/machine/releases/download/v0.7.0/docker-machine-Linux-x86_64 -O /usr/bin/docker-machine && \
+    chmod +x /usr/bin/docker-machine && \
+    apt-get clean && \
+    mkdir -p /etc/gitlab-runner/certs && \
+    chmod -R 700 /etc/gitlab-runner && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN echo "gitlab-runner ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+ADD entrypoint /
+RUN chmod +x /entrypoint
+
+# RUN gitlab-runner register --executor ${EXECUTOR_TYPE}
+
+VOLUME ["/etc/gitlab-runner", "/home/gitlab-runner"]
+ENTRYPOINT ["/usr/bin/dumb-init", "/entrypoint"]
+CMD ["run", "--user=gitlab-runner", "--working-directory=/home/gitlab-runner"]

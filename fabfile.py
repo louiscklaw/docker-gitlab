@@ -239,7 +239,7 @@ def rebuild_beahve_runner(runner_name, android_api):
     with cd(BEHAVE_RUNNER_CONTAINER):
         print(green('start runner building'))
         # rebuild_gitlab_runner(runner_name, ['behave',android_api])
-        run('docker build -t behaverunner .')
+        run('docker build -t behave-runner .')
         print(green('building done'))
 
 @task
@@ -271,9 +271,9 @@ def rebuild_runner():
         rebuild_gitlab_runner()
         # rebuild_gitlab_shell_runner()
         rebuild_beahve_runner('behave_runner_api22','android_api22')
-        # rebuild_gitlab_beahve_runner('behave_runner_api23','android_api23')
-        # rebuild_gitlab_beahve_runner('behave_runner_api24','android_api24')
-        # rebuild_gitlab_beahve_runner('behave_runner_api25','android_api25')
+        rebuild_beahve_runner('behave_runner_api23','android_api23')
+        rebuild_beahve_runner('behave_runner_api24','android_api24')
+        rebuild_beahve_runner('behave_runner_api25','android_api25')
 
 @task
 def rebuild_reporter():
