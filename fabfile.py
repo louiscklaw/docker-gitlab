@@ -249,7 +249,7 @@ def rebuild_beahve_runner(runner_name, android_api):
         print(green('building done'))
 
         print(green('register runner'))
-        register_gitlab_runner(runner_name, runner_name)
+        register_gitlab_runner(runner_name, android_api)
 
 @task
 def rebuild_gitlab():
@@ -279,10 +279,10 @@ def rebuild_runner():
     with settings(warn_only=True):
         rebuild_gitlab_runner()
         # rebuild_gitlab_shell_runner()
-        rebuild_beahve_runner('behave_runner_api22','android_api22')
+        rebuild_beahve_runner('behave_runner_api22',['behave', 'android_api22'])
         # rebuild_beahve_runner('behave_runner_api23','android_api23', REG_TOKEN)
         # rebuild_beahve_runner('behave_runner_api24','android_api24', REG_TOKEN)
-        rebuild_beahve_runner('behave_runner_api25','android_api25')
+        rebuild_beahve_runner('behave_runner_api25',['behave', 'android_api25'])
 
 @task
 def rebuild_reporter():
