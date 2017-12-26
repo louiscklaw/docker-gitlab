@@ -15,7 +15,6 @@ services:
         networks:
             - gitlab-network
 
-
     # gitlab_shell_runner:
     #     build:
     #         context: ./runner-container/appiumrunner
@@ -26,22 +25,13 @@ services:
     #     volumes:
     #         - allure-result-volume:/_allure_result
 
-
-    behave_runner_api22:
-        build:
-            context: ./runner-container/behave-runner
-        networks:
-            - gitlab-network
-        volumes:
-            - allure-result-volume:/_allure_result
-
-
-    debug_runner_api22:
-        build:
-            context: ./runner-container/behave-runner
-        networks:
-            - gitlab-network
-
+    # behave_runner_api22:
+    #     build:
+    #         context: ./runner-container/behave-runner
+    #     networks:
+    #         - gitlab-network
+    #     volumes:
+    #         - allure-result-volume:/_allure_result
 
     # behave_runner_api23:
     #     build:
@@ -66,6 +56,12 @@ services:
             - gitlab-network
         volumes:
             - allure-result-volume:/_allure_result
+
+    debug_runner:
+        build:
+            context: ./runner-container/behave-runner
+        networks:
+            - gitlab-network
 
     allure_report:
         restart: always
