@@ -35,6 +35,14 @@ services:
         volumes:
             - allure-result-volume:/_allure_result
 
+
+    debug_runner_api22:
+        build:
+            context: ./runner-container/behave-runner
+        networks:
+            - gitlab-network
+
+
     # behave_runner_api23:
     #     build:
     #         context: ./runner-container/behave-runner
