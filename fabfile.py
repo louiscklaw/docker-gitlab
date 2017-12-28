@@ -24,13 +24,11 @@ CURR_DIRECTORY = os.path.dirname(__file__)
 DOCKER_CONTAINER = r'docker-gitlab'
 PATH_DOCKER_FILE_DIRECTORY = r'/srv/docker-files'
 
-PATH_CONTAINER_DIRECTORY = os.path.join(
-    PATH_DOCKER_FILE_DIRECTORY, DOCKER_CONTAINER)
+PATH_CONTAINER_DIRECTORY = os.path.join(PATH_DOCKER_FILE_DIRECTORY, DOCKER_CONTAINER)
 
 # file for git to ignore
 PATH_NOT_FOR_VERSIONING = []
-PATH_NOT_FOR_VERSIONING.append(
-    PATH_CONTAINER_DIRECTORY + r'/./etc/letsencrypt/')
+PATH_NOT_FOR_VERSIONING.append(PATH_CONTAINER_DIRECTORY + r'/./etc/letsencrypt/')
 
 EPOCH_DATETIME = datetime.now().strftime('%s')
 
@@ -239,7 +237,7 @@ def reload_config():
         run('docker-compose ps')
 
 
-def rebuild_runner():
+def rebuild_runner_image():
     print(green('building gitlabrunner image'))
     with cd(GITLAB_RUNNER_CONTAINER):
         # with cd(REMOTE_DIR), prefix('source .env'):
@@ -247,6 +245,7 @@ def rebuild_runner():
         run('docker build -t gitlabrunner .')
         print(green('building done'))
 
+    with cd(BEHAVE_RUNNER_CONTAINER):
         print(green('start runner building'))
         # rebuild_gitlab_runner(runner_name, ['behave',android_api])
         run('docker build -t behave-runner .')
@@ -297,13 +296,12 @@ def rebuild_gitlab():
 def rebuild_runner():
     sync_files()
     with settings(warn_only=True):
-        rebuild_runner()
+        rebuild_runner_image()
         # rebuild_gitlab_shell_runner()
         # rebuild_beahve_runner('behave_runner_api22',['behave', 'android_api22'])
         # rebuild_beahve_runner('behave_runner_api23','android_api23', REG_TOKEN)
         # rebuild_beahve_runner('behave_runner_api24','android_api24', REG_TOKEN)
-        rebuild_beahve_runner('behave_runner_api25', [
-                              'behave', 'android_api25'])
+        rebuild_beahve_runner('behave_runner_api25', ['behave', 'android_api25'])
 
 
 @task
