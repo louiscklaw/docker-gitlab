@@ -15,57 +15,53 @@ services:
         networks:
             - gitlab-network
 
+    # gitlab_shell_runner:
+    #     build:
+    #         context: ./runner-container/appiumrunner
+    #         args:
+    #             EXECUTOR_TYPE: shell
+    #     networks:
+    #         - gitlab-network
+    #     volumes:
+    #         - allure-result-volume:/_allure_result
 
-    gitlab_shell_runner:
-        build:
-            context: ./gitlab-runner/appiumrunner
-            args:
-                EXECUTOR_TYPE: shell
-        networks:
-            - gitlab-network
-        volumes:
-            - allure-result-volume:/_allure_result
+    # behave_runner_api22:
+    #     build:
+    #         context: ./runner-container/behave-runner
+    #     networks:
+    #         - gitlab-network
+    #     volumes:
+    #         - allure-result-volume:/_allure_result
 
+    # behave_runner_api23:
+    #     build:
+    #         context: ./runner-container/behave-runner
+    #     networks:
+    #         - gitlab-network
+    #     volumes:
+    #         - allure-result-volume:/_allure_result
 
-    behave_runner_api22:
-        build:
-            context: ./gitlab-runner/behave-runner
-            args:
-                EXECUTOR_TYPE: shell
-        networks:
-            - gitlab-network
-        volumes:
-            - allure-result-volume:/_allure_result
-
-    behave_runner_api23:
-        build:
-            context: ./gitlab-runner/behave-runner
-            args:
-                EXECUTOR_TYPE: shell
-        networks:
-            - gitlab-network
-        volumes:
-            - allure-result-volume:/_allure_result
-
-    behave_runner_api24:
-        build:
-            context: ./gitlab-runner/behave-runner
-            args:
-                EXECUTOR_TYPE: shell
-        networks:
-            - gitlab-network
-        volumes:
-            - allure-result-volume:/_allure_result
+    # behave_runner_api24:
+    #     build:
+    #         context: ./runner-container/behave-runner
+    #     networks:
+    #         - gitlab-network
+    #     volumes:
+    #         - allure-result-volume:/_allure_result
 
     behave_runner_api25:
         build:
-            context: ./gitlab-runner/behave-runner
-            args:
-                EXECUTOR_TYPE: shell
+            context: ./runner-container/behave-runner
         networks:
             - gitlab-network
         volumes:
             - allure-result-volume:/_allure_result
+
+    debug_runner:
+        build:
+            context: ./runner-container/behave-runner
+        networks:
+            - gitlab-network
 
     allure_report:
         restart: always

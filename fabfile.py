@@ -4,7 +4,7 @@ taskfile for docker-gitlab building
 """
 
 # from invoke import run,task
-import os
+import os,sys
 # import sys
 
 from datetime import datetime
@@ -15,6 +15,8 @@ import re
 import time
 
 env.hosts = ['192.168.88.6']
+REG_TOKEN = os.getenv('REG_TOKEN','NOT_DEFINED')
+
 
 CURR_DIRECTORY = os.path.dirname(__file__)
 
@@ -46,13 +48,19 @@ GITLAB_SERVICE_NAME = 'gitlab'
 GITLAB_NAME = 'gitlab'
 GITLAB_IMAGE_NAME = 'gitlab/gitlab-ce'
 
-GITLAB_RUNNER_NAME = 'gitlabrunner'
-GITLAB_SHELL_RUNNER_NAME = 'gitlab_shell_runner'
-GITLAB_BEHAVE_RUNNER_NAME ='behave_runner'
+RUNNER_CONTAIENR = 'runner-container'
+GITLAB_RUNNER_NAME = 'gitlab-runner'
+# GITLAB_SHELL_RUNNER_NAME = 'gitlab_shell_runner'
+BEHAVE_RUNNER_NAME ='behave-runner'
 
 GITLAB_RUNNER_CONTAINER = os.path.sep.join([
-    REMOTE_DIR, GITLAB_RUNNER_NAME
+    REMOTE_DIR, RUNNER_CONTAIENR, GITLAB_RUNNER_NAME
 ])
+BEHAVE_RUNNER_CONTAINER = os.path.sep.join([
+    REMOTE_DIR, RUNNER_CONTAIENR, BEHAVE_RUNNER_NAME
+])
+
+
 
 def form_parameter_string(parameters):
     return ' '.join(
@@ -114,8 +122,14 @@ class allure_report_container(docker_container):
 @task
 def sync_files():
     """to sync file between develop machine and the docker host"""
+    exclude_list = [
+        '.git', '.vscode', 'etc','root','usr'
+    ]
+    exclude_string = ' '.join([
+        '--exclude %s' % _ for _ in exclude_list
+    ])
     local(
-        'rsync -avrPz --exclude .git --exclude .vscode %s/ logic@192.168.88.6:%s' % (LOCAL_DIR, REMOTE_DIR))
+        'rsync -avrPz %s %s/ logic@192.168.88.6:%s' % (exclude_string, LOCAL_DIR, REMOTE_DIR))
 
 def gitrunner_register():
     run('docker-compose exec gitlab_shell_runner gitlab-ci-multi-runner')
@@ -157,7 +171,8 @@ def normalize_to_list(variant):
 
 
 def register_gitlab_runner(container_name, tags_list):
-    # NOTE: normalize tag
+
+
     tags_list = normalize_to_list(tags_list)
 
     parameters = {
@@ -166,7 +181,7 @@ def register_gitlab_runner(container_name, tags_list):
         '--name': container_name,
         '--tag-list': ','.join(tags_list),
         '--url':'https://repo.louislabs.com',
-        '--registration-token': '$REG_TOKEN'
+        '--registration-token': REG_TOKEN
     }
 
     with settings(warn_only=True):
@@ -179,6 +194,7 @@ def register_gitlab_runner(container_name, tags_list):
 def rebuild_gitlab_runner(container_name, tags_list):
     print(green('building gitlab runner', True))
     with cd(REMOTE_DIR), prefix('source .env'), quiet():
+        run('docker-compose build %s' % container_name)
         run('docker-compose up -d --remove-orphans %s' % container_name)
 
     unregister_gitlab_runner(container_name)
@@ -206,28 +222,42 @@ def reload_config():
         # run('docker exec -it gitlab update-permissions')
         run('docker-compose ps')
 
-
-def rebuild_gitlab_shell_runner():
-    with cd(REMOTE_DIR), prefix('source .env'):
+def rebuild_gitlab_runner():
+    print(green('building gitlabrunner image'))
+    with cd(GITLAB_RUNNER_CONTAINER):
+    # with cd(REMOTE_DIR), prefix('source .env'):
         print(green('start runner building'))
-        rebuild_gitlab_runner(GITLAB_SHELL_RUNNER_NAME, ['basic'])
+        run('docker build -t gitlabrunner .')
         print(green('building done'))
 
+# def rebuild_gitlab_shell_runner():
+#     with cd(REMOTE_DIR), prefix('source .env'):
+#         print(green('start runner building'))
+#         rebuild_gitlab_runner(GITLAB_SHELL_RUNNER_NAME, ['basic'])
+#         print(green('building done'))
 
-def rebuild_gitlab_beahve_runner(runner_name, android_api):
-    with cd(REMOTE_DIR), prefix('source .env'):
+
+def rebuild_beahve_runner(runner_name, android_api):
+    # with cd(BEHAVE_RUNNER_CONTAINER), prefix('source .env'):
+    with cd(BEHAVE_RUNNER_CONTAINER):
+        print(green('try unregister runner'))
+        unregister_gitlab_runner(runner_name)
+
         print(green('start runner building'))
-        rebuild_gitlab_runner(runner_name, ['behave',android_api])
+        # rebuild_gitlab_runner(runner_name, ['behave',android_api])
+        run('docker build -t behave-runner .')
         print(green('building done'))
 
+        print(green('register runner'))
+        register_gitlab_runner(runner_name, android_api)
 
 @task
 def rebuild_gitlab():
-    # print(green('rebuild gitlabrunner base image'))
-    # run('docker build -t gitlabrunner:latest %s' % GITLAB_RUNNER_CONTAINER )
-    print(green('building gitlabrunner image'))
-    with cd(GITLAB_RUNNER_CONTAINER), quiet():
-        run('docker build -t gitlabrunner .')
+    # # print(green('rebuild gitlabrunner base image'))
+    # # run('docker build -t gitlabrunner:latest %s' % GITLAB_RUNNER_CONTAINER )
+    # print(green('building gitlabrunner image'))
+    # with cd(GITLAB_RUNNER_CONTAINER), quiet():
+    #     run('docker build -t gitlabrunner .')
 
     # for the gitrunner token
     with cd(REMOTE_DIR), prefix('source .env'):
@@ -247,11 +277,12 @@ def rebuild_gitlab():
 def rebuild_runner():
     sync_files()
     with settings(warn_only=True):
-        rebuild_gitlab_shell_runner()
-        rebuild_gitlab_beahve_runner('behave_runner_api22','android_api22')
-        rebuild_gitlab_beahve_runner('behave_runner_api23','android_api23')
-        rebuild_gitlab_beahve_runner('behave_runner_api24','android_api24')
-        rebuild_gitlab_beahve_runner('behave_runner_api25','android_api25')
+        rebuild_gitlab_runner()
+        # rebuild_gitlab_shell_runner()
+        rebuild_beahve_runner('behave_runner_api22',['behave', 'android_api22'])
+        # rebuild_beahve_runner('behave_runner_api23','android_api23', REG_TOKEN)
+        # rebuild_beahve_runner('behave_runner_api24','android_api24', REG_TOKEN)
+        rebuild_beahve_runner('behave_runner_api25',['behave', 'android_api25'])
 
 @task
 def rebuild_reporter():
