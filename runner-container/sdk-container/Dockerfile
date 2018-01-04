@@ -91,7 +91,3 @@ RUN apt-get update -y && \
     apt-get install -y python python-pip python3 python3-pip
 
 RUN pip3 install pipenv
-
-# require to make adb work on non-root user, i don't know why
-RUN adb --version
-RUN fastboot --version
