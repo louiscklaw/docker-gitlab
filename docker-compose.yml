@@ -67,16 +67,16 @@ services:
         networks:
             - gitlab-network
 
-    allure_report:
-        restart: always
-        build:
-            context: ./allure-report
+    # allure_report:
+    #     restart: always
+    #     build:
+    #         context: ./allure-report
 
-        ports:
-            - "5000:5000"
-        command: serve -p 5000 /_allure_result
-        volumes:
-            - allure-result-volume:/_allure_result
+    #     ports:
+    #         - "5000:5000"
+    #     command: serve -p 5000 /_allure_result
+    #     volumes:
+    #         - allure-result-volume:/_allure_result
 
 networks:
     gitlab-network:
