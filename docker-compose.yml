@@ -57,9 +57,6 @@ services:
         volumes:
             - allure-result-volume:/_allure_result
             - tmp_video:/tmp/video
-        deploy:
-            mode: replicated
-            replicas: 2
 
     debug_runner:
         build:
