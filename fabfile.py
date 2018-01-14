@@ -6,14 +6,13 @@ taskfile for docker-gitlab building
 # from invoke import run,task
 import os
 import sys
-# import sys
-
 from datetime import datetime
-from fabric.api import run, cd, env, task, local, prefix, settings, quiet
-from fabric.colors import *
 import re
-
 import time
+
+from fabric.api import *
+from fabric.colors import *
+from fabric.contrib.project import *
 
 env.hosts = ['192.168.88.6']
 REG_TOKEN = os.getenv('REG_TOKEN', 'NOT_DEFINED')
