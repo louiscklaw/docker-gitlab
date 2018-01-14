@@ -122,17 +122,29 @@ class allure_report_container(docker_container):
         pass
 
 
+# @task
+# def sync_files():
+#     """to sync file between develop machine and the docker host"""
+#     exclude_list = [
+#         '.git', '.vscode', 'etc', 'root', 'usr'
+#     ]
+#     exclude_string = ' '.join([
+#         '--exclude %s' % _ for _ in exclude_list
+#     ])
+#     local(
+#         'rsync -avrPz %s %s/ logic@192.168.88.6:%s' % (exclude_string, LOCAL_DIR, REMOTE_DIR))
+
 @task
 def sync_files():
     """to sync file between develop machine and the docker host"""
     exclude_list = [
-        '.git', '.vscode', 'etc', 'root', 'usr'
-    ]
-    exclude_string = ' '.join([
-        '--exclude %s' % _ for _ in exclude_list
-    ])
-    local(
-        'rsync -avrPz %s %s/ logic@192.168.88.6:%s' % (exclude_string, LOCAL_DIR, REMOTE_DIR))
+            '.git', '.vscode', 'etc', 'root', 'usr'
+        ]
+    rsync_project(
+        local_dir = LOCAL_DIR+'/',
+        remote_dir = REMOTE_DIR,
+        exclude=exclude_list
+    )
 
 
 def gitrunner_register():
